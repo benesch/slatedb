@@ -196,6 +196,7 @@ impl SsTableFormat {
         let range = self.block_range(blocks.clone(), info, &index);
         let start_offset = range.start;
         let bytes: Bytes = obj.read_range(range).await?;
+        tokio::time::sleep(std::time::Duration::from_secs(900)).await;
         let mut decoded_blocks = VecDeque::new();
         let compression_codec = info.compression_codec;
         for block in blocks {
