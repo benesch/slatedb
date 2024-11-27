@@ -71,6 +71,7 @@ pub(crate) struct DbInner {
 }
 
 impl DbInner {
+    #[async_backtrace::framed]
     pub async fn new(
         options: DbOptions,
         table_store: Arc<TableStore>,
@@ -95,6 +96,7 @@ impl DbInner {
     }
 
     /// Get the value for a given key.
+    #[async_backtrace::framed]
     pub async fn get_with_options(
         &self,
         key: &[u8],
@@ -150,6 +152,7 @@ impl DbInner {
         Ok(None)
     }
 
+    #[async_backtrace::framed]
     async fn fence_writers(
         &self,
         manifest: &mut FenceableManifest,
@@ -186,6 +189,7 @@ impl DbInner {
     /// - `key_hash`: the hash of the key (used for filter, to avoid recomputing the hash)
     /// ## Returns
     /// - `true` if the key is in the range of the sst.
+    #[async_backtrace::framed]
     async fn sst_might_include_key(
         &self,
         sst: &SsTableHandle,
@@ -209,6 +213,7 @@ impl DbInner {
     /// - `key_hash`: the hash of the key (used for filter, to avoid recomputing the hash)
     /// ## Returns
     /// - `true` if the key is in the range of the sst.
+    #[async_backtrace::framed]
     async fn sr_might_include_key(
         &self,
         sr: &SortedRun,
@@ -231,6 +236,7 @@ impl DbInner {
         return true;
     }
 
+    #[async_backtrace::framed]
     pub async fn write_with_options(
         &self,
         batch: WriteBatch,
@@ -260,6 +266,7 @@ impl DbInner {
     }
 
     #[inline]
+    #[async_backtrace::framed]
     pub(crate) async fn maybe_apply_backpressure(&self) {
         loop {
             let mem_size_bytes = {
@@ -315,6 +322,7 @@ impl DbInner {
         }
     }
 
+    #[async_backtrace::framed]
     async fn flush_wals(&self) -> Result<(), SlateDBError> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.wal_flush_notifier
@@ -324,6 +332,7 @@ impl DbInner {
     }
 
     // use to manually flush memtables
+    #[async_backtrace::framed]
     async fn flush_memtables(&self) -> Result<(), SlateDBError> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.memtable_flush_notifier
@@ -332,6 +341,7 @@ impl DbInner {
         rx.await?
     }
 
+    #[async_backtrace::framed]
     async fn replay_wal(&self) -> Result<(), SlateDBError> {
         async fn load_sst_iters(
             db_inner: &DbInner,
@@ -494,6 +504,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn open<P: Into<Path>>(
         path: P,
         object_store: Arc<dyn ObjectStore>,
@@ -528,6 +539,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn open_with_opts<P: Into<Path>>(
         path: P,
         options: DbOptions,
@@ -572,6 +584,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn open_with_fp_registry<P: Into<Path>>(
         path: P,
         options: DbOptions,
@@ -706,6 +719,7 @@ impl Db {
         })
     }
 
+    #[async_backtrace::framed]
     async fn init_db(
         manifest_store: &Arc<ManifestStore>,
         latest_stored_manifest: Option<StoredManifest>,
@@ -737,6 +751,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn close(&self) -> Result<(), SlateDBError> {
         if let Some(compactor) = {
             let mut maybe_compactor = self.compactor.lock();
@@ -828,6 +843,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn get(&self, key: &[u8]) -> Result<Option<Bytes>, SlateDBError> {
         self.inner.get_with_options(key, DEFAULT_READ_OPTIONS).await
     }
@@ -868,6 +884,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn get_with_options(
         &self,
         key: &[u8],
@@ -900,6 +917,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn put(&self, key: &[u8], value: &[u8]) -> Result<(), SlateDBError> {
         let mut batch = WriteBatch::new();
         batch.put(key, value);
@@ -932,6 +950,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn put_with_options(
         &self,
         key: &[u8],
@@ -967,6 +986,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+
     pub async fn delete(&self, key: &[u8]) -> Result<(), SlateDBError> {
         let mut batch = WriteBatch::new();
         batch.delete(key);
@@ -997,6 +1017,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn delete_with_options(
         &self,
         key: &[u8],
@@ -1038,6 +1059,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn write(&self, batch: WriteBatch) -> Result<(), SlateDBError> {
         self.write_with_options(batch, DEFAULT_WRITE_OPTIONS).await
     }
@@ -1074,6 +1096,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn write_with_options(
         &self,
         batch: WriteBatch,
@@ -1104,6 +1127,7 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
+    #[async_backtrace::framed]
     pub async fn flush(&self) -> Result<(), SlateDBError> {
         if self.inner.wal_enabled() {
             self.inner.flush_wals().await
@@ -1122,6 +1146,7 @@ mod tests {
     use std::sync::atomic::Ordering;
     use std::time::Duration;
 
+    use async_backtrace::frame;
     use futures::{future::join_all, StreamExt};
     use object_store::memory::InMemory;
     use object_store::ObjectStore;
@@ -1139,7 +1164,7 @@ mod tests {
     use crate::test_utils::assert_iterator;
     use crate::test_utils::{gen_attrs, TestClock};
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_put_get_delete() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let kv_store = Db::open_with_opts(
@@ -1163,7 +1188,7 @@ mod tests {
         kv_store.close().await.unwrap();
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_get_with_object_store_cache_metrics() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let mut opts = test_db_options(0, 1024, None);
@@ -1196,7 +1221,7 @@ mod tests {
         assert!(kv_store.metrics().object_store_cache_part_hits.get() >= 1);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_get_with_object_store_cache_stored_files() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let mut opts = test_db_options(0, 1024, None);
@@ -1287,7 +1312,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_write_batch() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let kv_store = Db::open_with_opts(
@@ -1318,7 +1343,7 @@ mod tests {
     }
 
     #[cfg(feature = "wal_disable")]
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_write_batch_without_wal() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         // Use a very small l0 size to force flushes so await is notified
@@ -1354,7 +1379,7 @@ mod tests {
         kv_store.close().await.unwrap();
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_write_batch_with_empty_key() {
         let mut batch = WriteBatch::new();
         let result = std::panic::catch_unwind(move || {
@@ -1386,7 +1411,7 @@ mod tests {
     ///
     /// _Note: This test is non-deterministic because it depends on the async
     /// runtime to schedule the tasks in a way that the writes are concurrent._
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_concurrent_batch_writes_consistency() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let kv_store = Arc::new(
@@ -1420,25 +1445,25 @@ mod tests {
             // Write two tasks that write to the same keys
             let task1 = {
                 let store = kv_store.clone();
-                tokio::spawn(async move {
+                tokio::spawn(frame!(async move {
                     let mut batch = WriteBatch::new();
                     for key in 1..=NUM_KEYS {
                         batch.put(&key.to_be_bytes(), &key.to_be_bytes());
                     }
                     store.write(batch).await.expect("write batch failed");
-                })
+                }))
             };
 
             let task2 = {
                 let store = kv_store.clone();
-                tokio::spawn(async move {
+                tokio::spawn(frame!(async move {
                     let mut batch = WriteBatch::new();
                     for key in 1..=NUM_KEYS {
                         let value = (key * 2).to_be_bytes();
                         batch.put(&key.to_be_bytes(), &value);
                     }
                     store.write(batch).await.expect("write batch failed");
-                })
+                }))
             };
 
             // Wait for both tasks to complete
@@ -1470,7 +1495,7 @@ mod tests {
         kv_store.close().await.unwrap();
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     #[cfg(feature = "wal_disable")]
     async fn test_disable_wal_after_wal_enabled() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -1512,7 +1537,7 @@ mod tests {
     }
 
     #[cfg(feature = "wal_disable")]
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_wal_disabled() {
         use crate::test_utils::gen_empty_attrs;
 
@@ -1595,7 +1620,7 @@ mod tests {
         .await;
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_put_flushes_memtable() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -1704,7 +1729,7 @@ mod tests {
         assert_eq!(snapshot.state.imm_wal.len(), 1);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_apply_backpressure_to_memtable_flush() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let mut options = test_db_options(0, 1, None);
@@ -1724,7 +1749,7 @@ mod tests {
         assert_eq!(snapshot.state.imm_memtable.len(), 1);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_put_empty_value() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let kv_store = Db::open_with_opts(
@@ -1745,7 +1770,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_flush_while_iterating() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let kv_store = Db::open_with_opts(
@@ -1789,7 +1814,7 @@ mod tests {
         assert_eq!(kv.key, b"abc3333".as_slice());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_basic_restore() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -1956,7 +1981,7 @@ mod tests {
         kv_store.close().await.unwrap();
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_delete_without_awaiting_flush() {
         let fp_registry = Arc::new(FailPointRegistry::new());
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -2198,7 +2223,7 @@ mod tests {
         assert!(neg_lookup.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_read_from_compacted_db() {
         do_test_should_read_compacted_db(test_db_options(
             0,
@@ -2216,7 +2241,7 @@ mod tests {
         .await;
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_read_from_compacted_db_no_filters() {
         do_test_should_read_compacted_db(test_db_options(
             u32::MAX,
@@ -2234,7 +2259,7 @@ mod tests {
         .await
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_db_open_should_write_empty_wal() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -2259,7 +2284,7 @@ mod tests {
         assert_eq!(db.inner.state.read().state().core.next_wal_sst_id, 4);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_empty_wal_should_fence_old_writer() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -2317,7 +2342,7 @@ mod tests {
         assert_eq!(db2.inner.state.read().state().core.next_wal_sst_id, 5);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_invalid_clock_progression() {
         // Given:
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -2353,7 +2378,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_invalid_clock_progression_across_db_instances() {
         // Given:
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());

@@ -49,6 +49,7 @@ pub struct BlockIterator<B: BlockLike> {
 }
 
 impl<B: BlockLike> KeyValueIterator for BlockIterator<B> {
+    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         let result = self.load_at_current_off();
         match result {
@@ -135,7 +136,7 @@ mod tests {
     use crate::test_utils;
     use crate::test_utils::gen_attrs;
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iterator() {
         let mut block_builder = BlockBuilder::new(1024);
         assert!(block_builder.add_kv("donkey".as_ref(), Some("kong".as_ref()), gen_attrs(1)));
@@ -152,7 +153,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_existing_key() {
         let mut block_builder = BlockBuilder::new(1024);
         assert!(block_builder.add_kv("donkey".as_ref(), Some("kong".as_ref()), gen_attrs(1)));
@@ -167,7 +168,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_nonexisting_key() {
         let mut block_builder = BlockBuilder::new(1024);
         assert!(block_builder.add_kv("donkey".as_ref(), Some("kong".as_ref()), gen_attrs(1)));
@@ -182,7 +183,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_end() {
         let mut block_builder = BlockBuilder::new(1024);
         assert!(block_builder.add_kv("donkey".as_ref(), Some("kong".as_ref()), gen_attrs(1)));

@@ -17,6 +17,7 @@ use std::sync::Arc;
 use tokio::runtime::Handle;
 
 /// read-only access to the latest manifest file
+#[async_backtrace::framed]
 pub async fn read_manifest(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -34,6 +35,7 @@ pub async fn read_manifest(
     }
 }
 
+#[async_backtrace::framed]
 pub async fn list_manifests<R: RangeBounds<u64>>(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -44,6 +46,7 @@ pub async fn list_manifests<R: RangeBounds<u64>>(
     Ok(serde_json::to_string(&manifests)?)
 }
 
+#[async_backtrace::framed]
 pub async fn list_checkpoints(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -82,6 +85,7 @@ pub fn load_object_store_from_env(
     }
 }
 
+#[async_backtrace::framed]
 pub async fn run_gc_instance(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,

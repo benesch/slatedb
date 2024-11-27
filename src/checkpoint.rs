@@ -29,6 +29,7 @@ impl Db {
     /// Creates a checkpoint of the db stored in the object store at the specified path using the
     /// provided options. Note that the scope option does not impact the behaviour of this method.
     /// The checkpoint will reference the current active manifest of the db.
+    #[async_backtrace::framed]
     pub async fn create_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,
@@ -87,6 +88,7 @@ impl Db {
     /// and a lifetime, and sets the lifetime of the checkpoint to the specified lifetime. If
     /// there is no checkpoint with the specified id, then this fn fails with
     /// SlateDBError::InvalidDbState
+    #[async_backtrace::framed]
     pub async fn refresh_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,
@@ -115,6 +117,7 @@ impl Db {
     }
 
     /// Deletes the checkpoint with the specified id.
+    #[async_backtrace::framed]
     pub async fn delete_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,
@@ -153,7 +156,7 @@ mod tests {
     use std::sync::Arc;
     use std::time::{Duration, SystemTime};
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_create_checkpoint() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -192,7 +195,7 @@ mod tests {
         assert_eq!(checkpoint.expire_time, None);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_create_checkpoint_with_expiry() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -236,7 +239,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_create_checkpoint_from_checkpoint() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -268,7 +271,7 @@ mod tests {
         assert_eq!(checkpoint_manifest_id, source_checkpoint_manifest_id);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_fail_create_checkpoint_from_missing_checkpoint() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -291,7 +294,7 @@ mod tests {
         assert!(matches!(result.unwrap_err(), SlateDBError::InvalidDBState));
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_fail_create_checkpoint_no_manifest() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -303,7 +306,7 @@ mod tests {
         assert!(matches!(result.unwrap_err(), SlateDBError::ManifestMissing));
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_refresh_checkpoint() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -359,7 +362,7 @@ mod tests {
         assert!(refreshed_expire_time > expire_time);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_fail_refresh_checkpoint_if_checkpoint_missing() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");
@@ -378,7 +381,7 @@ mod tests {
         assert!(matches!(result, Err(SlateDBError::InvalidDBState)));
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_should_delete_checkpoint() {
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
         let path = Path::from("/tmp/test_kv_store");

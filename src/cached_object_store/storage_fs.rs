@@ -67,6 +67,7 @@ impl LocalCacheStorage for FsCacheStorage {
         })
     }
 
+    #[async_backtrace::framed]
     async fn start_evictor(&self) {
         if let Some(evictor) = &self.evictor {
             evictor.start().await
@@ -89,6 +90,7 @@ pub(crate) struct FsCacheEntry {
 }
 
 impl FsCacheEntry {
+    #[async_backtrace::framed]
     async fn atomic_write(&self, path: &std::path::Path, buf: Bytes) -> object_store::Result<()> {
         let tmp_path = path.with_extension(format!("_tmp{}", self.make_rand_suffix()));
 
@@ -153,6 +155,7 @@ impl FsCacheEntry {
 
 #[async_trait::async_trait]
 impl LocalCacheEntry for FsCacheEntry {
+    #[async_backtrace::framed]
     async fn save_part(&self, part_number: usize, buf: Bytes) -> object_store::Result<()> {
         let part_path = Self::make_part_path(
             self.root_folder.clone(),
@@ -169,6 +172,7 @@ impl LocalCacheEntry for FsCacheEntry {
         self.atomic_write(&part_path, buf).await
     }
 
+    #[async_backtrace::framed]
     async fn read_part(
         &self,
         part_number: usize,
@@ -207,6 +211,7 @@ impl LocalCacheEntry for FsCacheEntry {
     }
 
     #[cfg(test)]
+    #[async_backtrace::framed]
     async fn cached_parts(
         &self,
     ) -> object_store::Result<Vec<crate::cached_object_store::storage::PartID>> {
@@ -264,6 +269,7 @@ impl LocalCacheEntry for FsCacheEntry {
         Ok(part_numbers)
     }
 
+    #[async_backtrace::framed]
     async fn save_head(&self, head: (&ObjectMeta, &Attributes)) -> object_store::Result<()> {
         // if the meta file exists and not corrupted, do nothing
         match self.read_head().await {
@@ -281,6 +287,7 @@ impl LocalCacheEntry for FsCacheEntry {
         self.atomic_write(&meta_path, buf.into()).await
     }
 
+    #[async_backtrace::framed]
     async fn read_head(&self) -> object_store::Result<Option<(ObjectMeta, Attributes)>> {
         let head_path = Self::make_head_path(self.root_folder.clone(), &self.location);
 
@@ -348,6 +355,7 @@ impl FsCacheEvictor {
         }
     }
 
+    #[async_backtrace::framed]
     async fn start(&self) {
         let inner = Arc::new(FsCacheEvictorInner::new(
             self.root_folder.clone(),
@@ -373,10 +381,12 @@ impl FsCacheEvictor {
             .ok();
     }
 
+    #[async_backtrace::framed]
     async fn started(&self) -> bool {
         self.rx.lock().await.is_none()
     }
 
+    #[async_backtrace::framed]
     async fn background_evict(
         inner: Arc<FsCacheEvictorInner>,
         mut rx: tokio::sync::mpsc::Receiver<FsCacheEvictorWork>,
@@ -393,6 +403,7 @@ impl FsCacheEvictor {
         }
     }
 
+    #[async_backtrace::framed]
     async fn background_scan(inner: Arc<FsCacheEvictorInner>, scan_interval: Option<Duration>) {
         inner.clone().scan_entries(true).await;
 
@@ -404,6 +415,7 @@ impl FsCacheEvictor {
         }
     }
 
+    #[async_backtrace::framed]
     pub async fn track_entry_accessed(&self, path: std::path::PathBuf, bytes: usize, evict: bool) {
         if !self.started().await {
             return;
@@ -542,6 +554,7 @@ impl FsCacheEvictorInner {
 
     // find a file, and evict it from disk. return the bytes of the evicted file. if no file is evicted or
     // any error occurs, return 0.
+    #[async_backtrace::framed]
     async fn maybe_evict_once(&self) -> usize {
         let (target, target_bytes) = match self.pick_evict_target().await {
             Some(target) => target,
@@ -589,6 +602,7 @@ impl FsCacheEvictorInner {
 
     // pick a file to evict, return None if no file is picked. it takes a pick-of-2 strategy, which is an approximation
     // of LRU, it randomized pick two files, compare their last access time, and choose the older one to evict.
+    #[async_backtrace::framed]
     async fn pick_evict_target(&self) -> Option<(std::path::PathBuf, usize)> {
         if self.cache_entries.lock().await.len() < 2 {
             return None;
@@ -616,6 +630,7 @@ impl FsCacheEvictorInner {
         }
     }
 
+    #[async_backtrace::framed]
     async fn random_pick_entry(&self) -> Option<(std::path::PathBuf, (SystemTime, usize))> {
         let cache_entries = self.cache_entries.lock().await;
         let mut rng = rand::rngs::StdRng::from_entropy();
@@ -662,7 +677,7 @@ mod tests {
         file_path
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_evictor() {
         let temp_dir = tempfile::Builder::new()
             .prefix("objstore_cache_test_evictor_")
@@ -701,7 +716,7 @@ mod tests {
         assert_eq!(file_paths.len(), 2); // the folder file "." is also counted
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_evictor_pick() {
         let temp_dir = tempfile::Builder::new()
             .prefix("objstore_cache_test_evictor_")
@@ -727,7 +742,7 @@ mod tests {
         assert_eq!(size, 1024);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_evictor_rescan() {
         let temp_dir = tempfile::Builder::new()
             .prefix("objstore_cache_test_evictor_")

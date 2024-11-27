@@ -16,6 +16,7 @@ use uuid::Uuid;
 mod args;
 
 #[tokio::main]
+#[async_backtrace::framed]
 async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
@@ -50,6 +51,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[async_backtrace::framed]
 async fn exec_read_manifest(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -66,6 +68,7 @@ async fn exec_read_manifest(
     Ok(())
 }
 
+#[async_backtrace::framed]
 async fn exec_list_manifest(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -85,6 +88,7 @@ async fn exec_list_manifest(
     ))
 }
 
+#[async_backtrace::framed]
 async fn exec_create_checkpoint(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -104,6 +108,7 @@ async fn exec_create_checkpoint(
     Ok(println!("{:?}", result))
 }
 
+#[async_backtrace::framed]
 async fn exec_refresh_checkpoint(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -116,6 +121,7 @@ async fn exec_refresh_checkpoint(
     ))
 }
 
+#[async_backtrace::framed]
 async fn exec_delete_checkpoint(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -127,6 +133,7 @@ async fn exec_delete_checkpoint(
     ))
 }
 
+#[async_backtrace::framed]
 async fn exec_list_checkpoints(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -136,6 +143,7 @@ async fn exec_list_checkpoints(
     Ok(println!("{}", checkpoint_json))
 }
 
+#[async_backtrace::framed]
 async fn exec_gc_once(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,
@@ -172,6 +180,7 @@ async fn exec_gc_once(
     Ok(())
 }
 
+#[async_backtrace::framed]
 async fn schedule_gc(
     path: &Path,
     object_store: Arc<dyn ObjectStore>,

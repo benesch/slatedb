@@ -20,12 +20,14 @@ pub(crate) enum WalFlushThreadMsg {
 }
 
 impl DbInner {
+    #[async_backtrace::framed]
     pub(crate) async fn flush(&self) -> Result<(), SlateDBError> {
         self.state.write().freeze_wal();
         self.flush_imm_wals().await?;
         Ok(())
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn flush_imm_table(
         &self,
         id: &db_state::SsTableId,
@@ -42,6 +44,7 @@ impl DbInner {
         Ok(handle)
     }
 
+    #[async_backtrace::framed]
     async fn flush_imm_wal(&self, imm: Arc<ImmutableWal>) -> Result<SsTableHandle, SlateDBError> {
         let wal_id = db_state::SsTableId::Wal(imm.id());
         self.flush_imm_table(&wal_id, imm.table()).await
@@ -74,6 +77,7 @@ impl DbInner {
         }
     }
 
+    #[async_backtrace::framed]
     async fn flush_imm_wals(&self) -> Result<(), SlateDBError> {
         while let Some(imm) = {
             let rguard = self.state.read();

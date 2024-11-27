@@ -22,6 +22,7 @@ pub(crate) struct MemtableFlusher {
 }
 
 impl MemtableFlusher {
+    #[async_backtrace::framed]
     pub(crate) async fn load_manifest(&mut self) -> Result<(), SlateDBError> {
         let current_manifest = self.manifest.refresh().await?;
         let mut wguard_state = self.db_inner.state.write();
@@ -29,6 +30,7 @@ impl MemtableFlusher {
         Ok(())
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn write_manifest(&mut self) -> Result<(), SlateDBError> {
         let core = {
             let rguard_state = self.db_inner.state.read();
@@ -37,6 +39,7 @@ impl MemtableFlusher {
         self.manifest.update_db_state(core).await
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn write_manifest_safely(&mut self) -> Result<(), SlateDBError> {
         loop {
             self.load_manifest().await?;
@@ -50,6 +53,7 @@ impl MemtableFlusher {
         }
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn flush_imm_memtables_to_l0(&mut self) -> Result<(), SlateDBError> {
         while let Some(imm_memtable) = {
             let rguard = self.db_inner.state.read();

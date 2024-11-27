@@ -45,6 +45,7 @@ pub(crate) struct ValueWithAttributes {
 }
 
 impl<'a> KeyValueIterator for MemTableIterator<'a> {
+    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         Ok(self.next_entry_sync())
     }
@@ -81,6 +82,7 @@ impl ImmutableMemtable {
         self.last_wal_id
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn await_flush_to_l0(&self) {
         let mut rx = self.is_flushed_rx.clone();
         while !*rx.borrow_and_update() {
@@ -214,6 +216,7 @@ impl KVTable {
         }
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn await_durable(&self) {
         let mut rx = self.is_durable_rx.clone();
         while !*rx.borrow_and_update() {
@@ -235,7 +238,7 @@ mod tests {
     use super::*;
     use crate::test_utils::gen_attrs;
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_iter() {
         let mut table = WritableKVTable::new();
         table.put(
@@ -283,7 +286,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_iter_entry_attrs() {
         let mut table = WritableKVTable::new();
         table.put(
@@ -305,7 +308,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_range_from_existing_key() {
         let mut table = WritableKVTable::new();
         table.put(
@@ -347,7 +350,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_range_from_nonexisting_key() {
         let mut table = WritableKVTable::new();
         table.put(
@@ -386,7 +389,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_iter_delete() {
         let mut table = WritableKVTable::new();
         table.put(
@@ -400,7 +403,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_memtable_track_sz() {
         let mut table = WritableKVTable::new();
 

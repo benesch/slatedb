@@ -2,6 +2,7 @@ use std::cmp::min;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
+use async_backtrace::frame;
 use tokio::task::JoinHandle;
 
 use crate::db_state::SsTableHandle;
@@ -63,6 +64,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
         found_block_id
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn new_from_key(
         table: H,
         table_store: Arc<TableStore>,
@@ -83,6 +85,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
         .await
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn new_spawn(
         table: H,
         table_store: Arc<TableStore>,
@@ -102,6 +105,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
         .await
     }
 
+    #[async_backtrace::framed]
     pub(crate) async fn new(
         table: H,
         table_store: Arc<TableStore>,
@@ -122,6 +126,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[async_backtrace::framed]
     pub(crate) async fn new_opts(
         table: H,
         from_key: Option<&'a [u8]>,
@@ -171,7 +176,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
             let index = self.index.clone();
             let cache_blocks = self.cache_blocks;
             self.fetch_tasks
-                .push_back(FetchTask::InFlight(tokio::spawn(async move {
+                .push_back(FetchTask::InFlight(tokio::spawn(frame!(async move {
                     table_store
                         .read_blocks_using_index(
                             &table,
@@ -180,11 +185,12 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
                             cache_blocks,
                         )
                         .await
-                })));
+                }))));
             self.next_block_idx_to_fetch = blocks_end;
         }
     }
 
+    #[async_backtrace::framed]
     async fn next_iter(&mut self) -> Result<Option<BlockIterator<Arc<Block>>>, SlateDBError> {
         loop {
             self.spawn_fetches();
@@ -219,6 +225,7 @@ impl<'a, H: AsRef<SsTableHandle>> SstIterator<'a, H> {
 }
 
 impl<'a, H: AsRef<SsTableHandle>> KeyValueIterator for SstIterator<'a, H> {
+    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         loop {
             let current_iter = if let Some(current_iter) = self.current_iter.as_mut() {
@@ -253,7 +260,7 @@ mod tests {
     use object_store::{memory::InMemory, ObjectStore};
     use std::sync::Arc;
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_one_block_sst_iter() {
         let root_path = Path::from("");
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -308,7 +315,7 @@ mod tests {
         assert!(kv.is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_many_block_sst_iter() {
         let root_path = Path::from("");
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -356,7 +363,7 @@ mod tests {
         assert!(next.is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_key() {
         let root_path = Path::from("");
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -407,7 +414,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_key_smaller_than_first() {
         let root_path = Path::from("");
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());
@@ -446,7 +453,7 @@ mod tests {
         assert!(iter.next().await.unwrap().is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_iter_from_key_larger_than_last() {
         let root_path = Path::from("");
         let object_store: Arc<dyn ObjectStore> = Arc::new(InMemory::new());

@@ -42,6 +42,7 @@ impl GarbageCollector {
     /// * `db_stats` - The database stats to use
     /// # Returns
     /// A new garbage collector
+    #[async_backtrace::framed]
     pub(crate) async fn new(
         manifest_store: Arc<ManifestStore>,
         table_store: Arc<TableStore>,
@@ -79,6 +80,7 @@ impl GarbageCollector {
     /// Waits for the main garbage collection thread to complete. This does
     /// not cause the thread to shut down, use [trigger_shutdown] or [close]
     /// instead to signal the thread to terminate
+    #[async_backtrace::framed]
     pub(crate) async fn await_shutdown(mut self) {
         while !*self.shutdown_rx.borrow() {
             self.shutdown_rx
@@ -108,6 +110,7 @@ impl GarbageCollector {
     }
 
     /// Close the garbage collector and await clean termination
+    #[async_backtrace::framed]
     pub(crate) async fn close(self) {
         self.trigger_shutdown();
         self.await_shutdown().await;
@@ -131,6 +134,7 @@ struct GarbageCollectorOrchestrator {
 impl GarbageCollectorOrchestrator {
     /// Collect garbage from the manifest store. This will delete any manifests
     /// that are older than the minimum age specified in the options.
+    #[async_backtrace::framed]
     async fn collect_garbage_manifests(&self) -> Result<(), SlateDBError> {
         let utc_now = Utc::now();
         let min_age = self
@@ -167,6 +171,7 @@ impl GarbageCollectorOrchestrator {
     /// Collect garbage from the WAL SSTs. This will delete any WAL SSTs that are
     /// older than the minimum age specified in the options and are also older than
     /// the last compacted WAL SST.
+    #[async_backtrace::framed]
     async fn collect_garbage_wal_ssts(&self) -> Result<(), SlateDBError> {
         let utc_now = Utc::now();
         let last_compacted_wal_sst_id = self
@@ -208,6 +213,7 @@ impl GarbageCollectorOrchestrator {
 
     /// Collect garbage from the compacted SSTs. This will delete any compacted SSTs that are
     /// older than the minimum age specified in the options and are not active in the manifest.
+    #[async_backtrace::framed]
     async fn collect_garbage_compacted_ssts(&self) -> Result<(), SlateDBError> {
         let utc_now = Utc::now();
         let manifest = self
@@ -265,6 +271,7 @@ impl GarbageCollectorOrchestrator {
     }
 
     /// Run the garbage collector
+    #[async_backtrace::framed]
     pub async fn run(&self) {
         let log_ticker = crossbeam_channel::tick(Duration::from_secs(60));
         let (manifest_ticker, mut manifest_status) =
@@ -415,7 +422,7 @@ mod tests {
         tablestore::TableStore,
     };
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_manifest() {
         let (manifest_store, table_store, local_object_store, db_stats) = build_objects();
 
@@ -461,7 +468,7 @@ mod tests {
         assert_eq!(manifests[0].id, 2);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_only_recent_manifests() {
         let (manifest_store, table_store, _, db_stats) = build_objects();
 
@@ -500,7 +507,7 @@ mod tests {
         assert_eq!(manifests[1].id, 2);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_old_active_manifest() {
         let (manifest_store, table_store, local_object_store, db_stats) = build_objects();
 
@@ -552,7 +559,7 @@ mod tests {
         assert_eq!(manifests[0].id, 2);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_wal_ssts() {
         let (manifest_store, table_store, local_object_store, db_stats) = build_objects();
 
@@ -631,7 +638,7 @@ mod tests {
         assert_eq!(wal_ssts[0].id, id2);
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_wal_ssts_and_keep_expired_last_compacted() {
         let (manifest_store, table_store, local_object_store, db_stats) = build_objects();
 
@@ -728,7 +735,7 @@ mod tests {
     /// - One inactive unexpired SST
     /// The test then runs the compactor to verify that only the inactive expired SSTs
     /// are deleted.
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_collect_garbage_compacted_ssts() {
         let (manifest_store, table_store, local_object_store, db_stats) = build_objects();
         let l0_sst_handle = create_sst(table_store.clone()).await;

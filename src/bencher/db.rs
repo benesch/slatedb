@@ -39,6 +39,7 @@ use std::ops::Range;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use async_backtrace::frame;
 use bytes::Bytes;
 use rand::{Rng, RngCore, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -156,6 +157,7 @@ impl DbBench {
     /// This method spins up `concurrency` tasks, each of which runs a loop,
     /// and then waits for all the tasks to complete. It also spawns a task
     /// to dump stats to the console.
+    #[async_backtrace::framed]
     pub async fn run(&self) {
         let stats_recorder = Arc::new(StatsRecorder::new());
         let mut tasks = Vec::new();
@@ -170,9 +172,9 @@ impl DbBench {
                 stats_recorder.clone(),
                 self.db.clone(),
             );
-            tasks.push(tokio::spawn(async move { task.run().await }));
+            tasks.push(tokio::spawn(frame!(async move { task.run().await })));
         }
-        tokio::spawn(async move { dump_stats(stats_recorder).await });
+        tokio::spawn(frame!(async move { dump_stats(stats_recorder).await }));
         for task in tasks {
             task.await.unwrap();
         }
@@ -218,6 +220,7 @@ impl Task {
     ///
     /// This method runs a loop, generating a key (and value if needed), and
     /// then either puts the key/value pair or gets the key.
+    #[async_backtrace::framed]
     async fn run(&mut self) {
         let mut random = rand_xorshift::XorShiftRng::from_entropy();
         let mut puts = 0u64;
@@ -391,6 +394,7 @@ impl StatsRecorder {
     }
 }
 
+#[async_backtrace::framed]
 async fn dump_stats(stats: Arc<StatsRecorder>) {
     let mut last_stats_dump: Option<Instant> = None;
     let mut first_dump_start: Option<Instant> = None;

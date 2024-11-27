@@ -63,6 +63,7 @@ impl DelegatingTransactionalObjectStore {
 
 #[async_trait]
 impl TransactionalObjectStore for DelegatingTransactionalObjectStore {
+    #[async_backtrace::framed]
     async fn put_if_not_exists(&self, path: &Path, data: Bytes) -> Result<PutResult, Error> {
         let path = self.path(path);
         self.object_store
@@ -74,11 +75,13 @@ impl TransactionalObjectStore for DelegatingTransactionalObjectStore {
             .await
     }
 
+    #[async_backtrace::framed]
     async fn get(&self, path: &Path) -> Result<GetResult, Error> {
         let path = self.path(path);
         self.object_store.get(&path).await
     }
 
+    #[async_backtrace::framed]
     async fn delete(&self, path: &Path) -> Result<(), Error> {
         let path = self.path(path);
         self.object_store.delete(&path).await
@@ -118,7 +121,7 @@ mod tests {
 
     const ROOT_PATH: &str = "/root/path";
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_delegating_should_fail_put_if_exists() {
         // given:
         let os = Arc::new(InMemory::new());
@@ -152,7 +155,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_delegating_should_get_put() {
         // given:
         let os = Arc::new(InMemory::new());
@@ -175,7 +178,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_delegating_should_list() {
         // given:
         let os = Arc::new(InMemory::new());
@@ -208,7 +211,7 @@ mod tests {
         assert!(listing.next().await.is_none());
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_delegating_should_put_with_prefix() {
         // given:
         let os = Arc::new(InMemory::new());
@@ -231,7 +234,7 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[slatedb_test_macros::test]
     async fn test_delegating_object_store_delete() {
         // given:
         let os = Arc::new(InMemory::new());
