@@ -3,8 +3,8 @@ use quote::quote;
 use syn::{parse_macro_input, AttributeArgs, ItemFn, ReturnType};
 
 // A macro that runs a test (via `tokio::test`) after installing a signal
-// handler that will print backtraces for all threads via gdb if the test is
-// interrupted by SIGTERM. Useful for debugging tests that hang in CI.
+// handler that will print backtraces for all threads via gdb if the test
+// is interrupted by SIGTERM. Useful for debugging tests that hang in CI.
 #[proc_macro_attribute]
 pub fn test(tokio_test_attrs: TokenStream, test_fn: TokenStream) -> TokenStream {
     let tokio_test_attrs = parse_macro_input!(tokio_test_attrs as AttributeArgs);
