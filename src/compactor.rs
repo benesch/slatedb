@@ -37,7 +37,6 @@ pub(crate) struct Compactor {
 }
 
 impl Compactor {
-    #[async_backtrace::framed]
     pub(crate) async fn new(
         manifest_store: Arc<ManifestStore>,
         table_store: Arc<TableStore>,
@@ -74,7 +73,6 @@ impl Compactor {
         })
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn close(mut self) {
         if let Some(main_thread) = self.main_thread.take() {
             self.main_tx.send(Shutdown).expect("main tx disconnected");
@@ -551,7 +549,6 @@ mod tests {
             .unwrap()
     }
 
-    #[async_backtrace::framed]
     async fn run_for<T, F>(duration: Duration, f: impl Fn() -> F) -> Option<T>
     where
         F: Future<Output = Option<T>>,
@@ -567,7 +564,6 @@ mod tests {
         None
     }
 
-    #[async_backtrace::framed]
     async fn build_test_db(
         options: DbOptions,
     ) -> (
@@ -596,7 +592,6 @@ mod tests {
         (os, manifest_store, table_store, db)
     }
 
-    #[async_backtrace::framed]
     async fn await_compaction(manifest_store: Arc<ManifestStore>) -> Option<CoreDbState> {
         run_for(Duration::from_secs(10), || async {
             let stored_manifest = StoredManifest::load(manifest_store.clone())

@@ -36,12 +36,10 @@ impl CachedObjectStore {
         }))
     }
 
-    #[async_backtrace::framed]
     pub async fn start_evictor(&self) {
         self.cache_storage.start_evictor().await;
     }
 
-    #[async_backtrace::framed]
     pub async fn cached_head(&self, location: &Path) -> object_store::Result<ObjectMeta> {
         let entry = self.cache_storage.entry(location, self.part_size_bytes);
         match entry.read_head().await {
@@ -65,7 +63,6 @@ impl CachedObjectStore {
         }
     }
 
-    #[async_backtrace::framed]
     pub async fn cached_get_opts(
         &self,
         location: &Path,
@@ -94,7 +91,6 @@ impl CachedObjectStore {
 
     // TODO: implement the put with cache here
     #[allow(unused)]
-    #[async_backtrace::framed]
     async fn cached_put_opts(
         &self,
         location: &Path,
@@ -110,7 +106,6 @@ impl CachedObjectStore {
     // single GET request, and save the related parts into local disks together.
     // when it sends GET requests to the object store, the range is expected to be ALIGNED with the part
     // size.
-    #[async_backtrace::framed]
     async fn maybe_prefetch_range(
         &self,
         location: &Path,
@@ -143,7 +138,6 @@ impl CachedObjectStore {
     /// save the GetResult to the disk cache, a GetResult may be transformed into multiple part
     /// files and a meta file. please note that the `range` in the GetResult is expected to be
     /// aligned with the part size.
-    #[async_backtrace::framed]
     async fn save_result(&self, result: GetResult) -> object_store::Result<usize> {
         assert!(result.range.start % self.part_size_bytes == 0);
         assert!(
@@ -351,7 +345,6 @@ impl std::fmt::Display for CachedObjectStore {
 
 #[async_trait::async_trait]
 impl ObjectStore for CachedObjectStore {
-    #[async_backtrace::framed]
     async fn get_opts(
         &self,
         location: &Path,
@@ -360,12 +353,10 @@ impl ObjectStore for CachedObjectStore {
         self.cached_get_opts(location, options).await
     }
 
-    #[async_backtrace::framed]
     async fn head(&self, location: &Path) -> object_store::Result<ObjectMeta> {
         self.cached_head(location).await
     }
 
-    #[async_backtrace::framed]
     async fn put_opts(
         &self,
         location: &Path,
@@ -376,7 +367,6 @@ impl ObjectStore for CachedObjectStore {
         self.object_store.put_opts(location, payload, opts).await
     }
 
-    #[async_backtrace::framed]
     async fn put_multipart(
         &self,
         location: &Path,
@@ -384,7 +374,6 @@ impl ObjectStore for CachedObjectStore {
         self.object_store.put_multipart(location).await
     }
 
-    #[async_backtrace::framed]
     async fn put_multipart_opts(
         &self,
         location: &Path,
@@ -393,7 +382,6 @@ impl ObjectStore for CachedObjectStore {
         self.object_store.put_multipart_opts(location, opts).await
     }
 
-    #[async_backtrace::framed]
     async fn delete(&self, location: &Path) -> object_store::Result<()> {
         // TODO: handle cache eviction
         self.object_store.delete(location).await
@@ -411,27 +399,22 @@ impl ObjectStore for CachedObjectStore {
         self.object_store.list_with_offset(prefix, offset)
     }
 
-    #[async_backtrace::framed]
     async fn list_with_delimiter(&self, prefix: Option<&Path>) -> object_store::Result<ListResult> {
         self.object_store.list_with_delimiter(prefix).await
     }
 
-    #[async_backtrace::framed]
     async fn copy(&self, from: &Path, to: &Path) -> object_store::Result<()> {
         self.object_store.copy(from, to).await
     }
 
-    #[async_backtrace::framed]
     async fn rename(&self, from: &Path, to: &Path) -> object_store::Result<()> {
         self.object_store.rename(from, to).await
     }
 
-    #[async_backtrace::framed]
     async fn copy_if_not_exists(&self, from: &Path, to: &Path) -> object_store::Result<()> {
         self.object_store.copy_if_not_exists(from, to).await
     }
 
-    #[async_backtrace::framed]
     async fn rename_if_not_exists(&self, from: &Path, to: &Path) -> object_store::Result<()> {
         self.object_store.rename_if_not_exists(from, to).await
     }

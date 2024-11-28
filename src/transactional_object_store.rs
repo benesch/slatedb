@@ -63,7 +63,6 @@ impl DelegatingTransactionalObjectStore {
 
 #[async_trait]
 impl TransactionalObjectStore for DelegatingTransactionalObjectStore {
-    #[async_backtrace::framed]
     async fn put_if_not_exists(&self, path: &Path, data: Bytes) -> Result<PutResult, Error> {
         let path = self.path(path);
         self.object_store
@@ -75,13 +74,11 @@ impl TransactionalObjectStore for DelegatingTransactionalObjectStore {
             .await
     }
 
-    #[async_backtrace::framed]
     async fn get(&self, path: &Path) -> Result<GetResult, Error> {
         let path = self.path(path);
         self.object_store.get(&path).await
     }
 
-    #[async_backtrace::framed]
     async fn delete(&self, path: &Path) -> Result<(), Error> {
         let path = self.path(path);
         self.object_store.delete(&path).await

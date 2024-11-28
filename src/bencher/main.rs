@@ -18,7 +18,6 @@ mod args;
 mod db;
 
 #[tokio::main]
-#[async_backtrace::framed]
 async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
@@ -37,7 +36,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[async_backtrace::framed]
 async fn exec_benchmark_db(path: Path, object_store: Arc<dyn ObjectStore>, args: BenchmarkDbArgs) {
     let config = args.db_args.config().unwrap();
     let write_options = WriteOptions {
@@ -62,7 +60,6 @@ async fn exec_benchmark_db(path: Path, object_store: Arc<dyn ObjectStore>, args:
     db.close().await.expect("Failed to close db");
 }
 
-#[async_backtrace::framed]
 async fn exec_benchmark_compaction(
     path: Path,
     object_store: Arc<dyn ObjectStore>,

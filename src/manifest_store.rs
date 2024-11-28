@@ -23,7 +23,6 @@ use crate::transactional_object_store::{
 /// updating the manifest at the same time. The update to be applied is specified by
 /// the mutator parameter, which is a function that takes a &StoredManifest and returns
 /// the updated CoreDbState.
-#[async_backtrace::framed]
 pub(crate) async fn apply_db_state_update<F>(
     manifest: &mut StoredManifest,
     mutator: F,
@@ -54,7 +53,6 @@ pub(crate) struct FenceableManifest {
 // the relevant epoch when initialized. It also detects when the current writer has been
 // fenced and fails all operations with SlateDBError::Fenced.
 impl FenceableManifest {
-    #[async_backtrace::framed]
     pub(crate) async fn init_writer(stored_manifest: StoredManifest) -> Result<Self, SlateDBError> {
         Self::init(stored_manifest, Box::new(|m| m.writer_epoch), |m, e| {
             m.writer_epoch = e
@@ -62,7 +60,6 @@ impl FenceableManifest {
         .await
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn init_compactor(
         stored_manifest: StoredManifest,
     ) -> Result<Self, SlateDBError> {
@@ -72,7 +69,6 @@ impl FenceableManifest {
         .await
     }
 
-    #[async_backtrace::framed]
     async fn init(
         mut stored_manifest: StoredManifest,
         stored_epoch: Box<dyn Fn(&Manifest) -> u64 + Send>,
@@ -94,13 +90,11 @@ impl FenceableManifest {
         Ok(self.stored_manifest.db_state())
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn refresh(&mut self) -> Result<&CoreDbState, SlateDBError> {
         self.stored_manifest.refresh().await?;
         self.db_state()
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn update_db_state(
         &mut self,
         db_state: CoreDbState,
@@ -136,7 +130,6 @@ pub(crate) struct StoredManifest {
 }
 
 impl StoredManifest {
-    #[async_backtrace::framed]
     pub(crate) async fn init_new_db(
         store: Arc<ManifestStore>,
         core: CoreDbState,
@@ -157,7 +150,6 @@ impl StoredManifest {
     /// Load the current manifest from the supplied manifest store. If there is no db at the
     /// manifest store's path then this fn returns None. Otherwise, on success it returns a
     /// Result with an instance of StoredManifest.
-    #[async_backtrace::framed]
     pub(crate) async fn load(store: Arc<ManifestStore>) -> Result<Option<Self>, SlateDBError> {
         let Some((id, manifest)) = store.read_latest_manifest().await? else {
             return Ok(None);
@@ -177,7 +169,6 @@ impl StoredManifest {
         &self.manifest.core
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn refresh(&mut self) -> Result<&CoreDbState, SlateDBError> {
         let Some((id, manifest)) = self.manifest_store.read_latest_manifest().await? else {
             return Err(InvalidDBState);
@@ -187,7 +178,6 @@ impl StoredManifest {
         Ok(&self.manifest.core)
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn update_db_state(&mut self, core: CoreDbState) -> Result<(), SlateDBError> {
         let manifest = Manifest {
             core,
@@ -197,7 +187,6 @@ impl StoredManifest {
         self.update_manifest(manifest).await
     }
 
-    #[async_backtrace::framed]
     async fn update_manifest(&mut self, manifest: Manifest) -> Result<(), SlateDBError> {
         let new_id = self.id + 1;
         self.manifest_store
@@ -245,7 +234,6 @@ impl ManifestStore {
         }
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn write_manifest(
         &self,
         id: u64,
@@ -268,7 +256,6 @@ impl ManifestStore {
     }
 
     /// Delete a manifest from the object store.
-    #[async_backtrace::framed]
     pub(crate) async fn delete_manifest(&self, id: u64) -> Result<(), SlateDBError> {
         // TODO Once we implement snapshots, we should check if the manifest is snapshotted as well
         let (active_id, _) = self
@@ -287,7 +274,6 @@ impl ManifestStore {
     /// range is the current manifest.
     /// # Arguments
     /// * `id_range` - The range of IDs to list
-    #[async_backtrace::framed]
     pub(crate) async fn list_manifests<R: RangeBounds<u64>>(
         &self,
         id_range: R,
@@ -318,7 +304,6 @@ impl ManifestStore {
         Ok(manifests)
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_latest_manifest(
         &self,
     ) -> Result<Option<(u64, Manifest)>, SlateDBError> {
@@ -329,7 +314,6 @@ impl ManifestStore {
         }
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_manifest(
         &self,
         id: u64,

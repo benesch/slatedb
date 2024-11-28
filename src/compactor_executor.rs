@@ -92,7 +92,6 @@ pub(crate) struct TokioCompactionExecutorInner {
 }
 
 impl TokioCompactionExecutorInner {
-    #[async_backtrace::framed]
     async fn load_iterators<'a>(
         &'a self,
         compaction: &'a CompactionJob,
@@ -117,7 +116,6 @@ impl TokioCompactionExecutorInner {
         TwoMergeIterator::new(l0_merge_iter, sr_merge_iter).await
     }
 
-    #[async_backtrace::framed]
     async fn execute_compaction(
         &self,
         compaction: CompactionJob,

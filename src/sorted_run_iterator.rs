@@ -18,7 +18,6 @@ pub(crate) struct SortedRunIterator<'a> {
 }
 
 impl<'a> SortedRunIterator<'a> {
-    #[async_backtrace::framed]
     pub(crate) async fn new_from_key(
         sorted_run: &'a SortedRun,
         key: &'a [u8],
@@ -40,7 +39,6 @@ impl<'a> SortedRunIterator<'a> {
         .await
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn new_spawn(
         sorted_run: &'a SortedRun,
         table_store: Arc<TableStore>,
@@ -61,7 +59,6 @@ impl<'a> SortedRunIterator<'a> {
     }
 
     #[allow(dead_code)]
-    #[async_backtrace::framed]
     pub(crate) async fn new(
         sorted_run: &'a SortedRun,
         table_store: Arc<TableStore>,
@@ -81,7 +78,6 @@ impl<'a> SortedRunIterator<'a> {
         .await
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn new_opts(
         sorted_run: &'a SortedRun,
         from_key: Option<&'a [u8]>,
@@ -131,7 +127,6 @@ impl<'a> SortedRunIterator<'a> {
 }
 
 impl<'a> KeyValueIterator for SortedRunIterator<'a> {
-    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         loop {
             if let Some(iter) = &mut self.current_iter {

@@ -40,7 +40,6 @@ impl Default for SsTableFormat {
 }
 
 impl SsTableFormat {
-    #[async_backtrace::framed]
     pub(crate) async fn read_info(
         &self,
         obj: &impl ReadOnlyBlob,
@@ -59,7 +58,6 @@ impl SsTableFormat {
         SsTableInfo::decode(sst_metadata_bytes, &*self.sst_codec)
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_filter(
         &self,
         info: &SsTableInfo,
@@ -90,7 +88,6 @@ impl SsTableFormat {
         Ok(BloomFilter::decode(&filter_bytes))
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_index(
         &self,
         info: &SsTableInfo,
@@ -179,7 +176,6 @@ impl SsTableFormat {
         start_offset..end_offset
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_blocks(
         &self,
         info: &SsTableInfo,
@@ -238,7 +234,6 @@ impl SsTableFormat {
         })
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_block(
         &self,
         info: &SsTableInfo,

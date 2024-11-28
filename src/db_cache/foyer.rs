@@ -89,17 +89,14 @@ impl Default for FoyerCache {
 
 #[async_trait]
 impl DbCache for FoyerCache {
-    #[async_backtrace::framed]
     async fn get(&self, key: CachedKey) -> Option<CachedEntry> {
         self.inner.get(&key).map(|entry| entry.value().clone())
     }
 
-    #[async_backtrace::framed]
     async fn insert(&self, key: CachedKey, value: CachedEntry) {
         self.inner.insert(key, value);
     }
 
-    #[async_backtrace::framed]
     async fn remove(&self, key: CachedKey) {
         self.inner.remove(&key);
     }

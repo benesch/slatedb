@@ -29,7 +29,6 @@ impl Db {
     /// Creates a checkpoint of the db stored in the object store at the specified path using the
     /// provided options. Note that the scope option does not impact the behaviour of this method.
     /// The checkpoint will reference the current active manifest of the db.
-    #[async_backtrace::framed]
     pub async fn create_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,
@@ -88,7 +87,6 @@ impl Db {
     /// and a lifetime, and sets the lifetime of the checkpoint to the specified lifetime. If
     /// there is no checkpoint with the specified id, then this fn fails with
     /// SlateDBError::InvalidDbState
-    #[async_backtrace::framed]
     pub async fn refresh_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,
@@ -117,7 +115,6 @@ impl Db {
     }
 
     /// Deletes the checkpoint with the specified id.
-    #[async_backtrace::framed]
     pub async fn delete_checkpoint(
         path: &Path,
         object_store: Arc<dyn ObjectStore>,

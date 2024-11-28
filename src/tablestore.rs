@@ -44,19 +44,16 @@ struct ReadOnlyObject {
 }
 
 impl ReadOnlyBlob for ReadOnlyObject {
-    #[async_backtrace::framed]
     async fn len(&self) -> Result<usize, SlateDBError> {
         let object_metadata = self.object_store.head(&self.path).await?;
         Ok(object_metadata.size)
     }
 
-    #[async_backtrace::framed]
     async fn read_range(&self, range: Range<usize>) -> Result<Bytes, SlateDBError> {
         let bytes = self.object_store.get_range(&self.path, range).await?;
         Ok(bytes)
     }
 
-    #[async_backtrace::framed]
     async fn read(&self) -> Result<Bytes, SlateDBError> {
         let file = self.object_store.get(&self.path).await?;
         let bytes = file.bytes().await?;
@@ -113,7 +110,6 @@ impl TableStore {
         }
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn list_wal_ssts<R: RangeBounds<u64>>(
         &self,
         id_range: R,
@@ -141,7 +137,6 @@ impl TableStore {
         Ok(wal_list)
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn next_wal_sst_id(
         &self,
         wal_id_last_compacted: u64,
@@ -171,7 +166,6 @@ impl TableStore {
         self.sst_format.table_builder()
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn write_sst(
         &self,
         id: &SsTableId,
@@ -220,7 +214,6 @@ impl TableStore {
         })
     }
 
-    #[async_backtrace::framed]
     async fn cache_filter(&self, sst: SsTableId, id: u64, filter: Option<Arc<BloomFilter>>) {
         let Some(cache) = &self.block_cache else {
             return;
@@ -233,7 +226,6 @@ impl TableStore {
     }
 
     /// Delete an SSTable from the object store.
-    #[async_backtrace::framed]
     pub(crate) async fn delete_sst(&self, id: &SsTableId) -> Result<(), SlateDBError> {
         let path = self.path(id);
         self.object_store
@@ -249,7 +241,6 @@ impl TableStore {
     /// * `id_range` - The range of IDs to list
     /// # Returns
     /// A list of SSTables in the compacted directory
-    #[async_backtrace::framed]
     pub(crate) async fn list_compacted_ssts<R: RangeBounds<Ulid>>(
         &self,
         id_range: R,
@@ -288,7 +279,6 @@ impl TableStore {
 
     // todo: clean up the warning suppression when we start using open_sst outside tests
     #[allow(dead_code)]
-    #[async_backtrace::framed]
     pub(crate) async fn open_sst(&self, id: &SsTableId) -> Result<SsTableHandle, SlateDBError> {
         let path = self.path(id);
         let obj = ReadOnlyObject {
@@ -299,7 +289,6 @@ impl TableStore {
         Ok(SsTableHandle { id: *id, info })
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_filter(
         &self,
         handle: &SsTableHandle,
@@ -332,7 +321,6 @@ impl TableStore {
         Ok(filter)
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn read_index(
         &self,
         handle: &SsTableHandle,
@@ -364,7 +352,6 @@ impl TableStore {
     }
 
     #[allow(dead_code)]
-    #[async_backtrace::framed]
     pub(crate) async fn read_blocks(
         &self,
         handle: &SsTableHandle,
@@ -387,7 +374,6 @@ impl TableStore {
     /// and falls back to reading from storage for uncached blocks
     /// using an async fetch for each contiguous range that blocks are not cached.
     /// It can optionally cache newly read blocks.
-    #[async_backtrace::framed]
     pub(crate) async fn read_blocks_using_index(
         &self,
         handle: &SsTableHandle,
@@ -486,7 +472,6 @@ impl TableStore {
     }
 
     #[allow(dead_code)]
-    #[async_backtrace::framed]
     pub(crate) async fn read_block(
         &self,
         handle: &SsTableHandle,
@@ -551,13 +536,11 @@ pub(crate) struct EncodedSsTableWriter<'a> {
 }
 
 impl<'a> EncodedSsTableWriter<'a> {
-    #[async_backtrace::framed]
     pub async fn add(&mut self, entry: RowEntry) -> Result<(), SlateDBError> {
         self.builder.add(entry)?;
         self.drain_blocks().await
     }
 
-    #[async_backtrace::framed]
     pub async fn close(mut self) -> Result<SsTableHandle, SlateDBError> {
         let mut encoded_sst = self.builder.build()?;
         while let Some(block) = encoded_sst.unconsumed_blocks.pop_front() {
@@ -573,7 +556,6 @@ impl<'a> EncodedSsTableWriter<'a> {
         })
     }
 
-    #[async_backtrace::framed]
     async fn drain_blocks(&mut self) -> Result<(), SlateDBError> {
         while let Some(block) = self.builder.next_block() {
             self.writer.write_all(block.as_ref()).await?;

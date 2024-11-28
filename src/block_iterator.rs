@@ -49,7 +49,6 @@ pub struct BlockIterator<B: BlockLike> {
 }
 
 impl<B: BlockLike> KeyValueIterator for BlockIterator<B> {
-    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         let result = self.load_at_current_off();
         match result {

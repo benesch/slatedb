@@ -71,7 +71,6 @@ pub(crate) struct DbInner {
 }
 
 impl DbInner {
-    #[async_backtrace::framed]
     pub async fn new(
         options: DbOptions,
         table_store: Arc<TableStore>,
@@ -96,7 +95,6 @@ impl DbInner {
     }
 
     /// Get the value for a given key.
-    #[async_backtrace::framed]
     pub async fn get_with_options(
         &self,
         key: &[u8],
@@ -152,7 +150,6 @@ impl DbInner {
         Ok(None)
     }
 
-    #[async_backtrace::framed]
     async fn fence_writers(
         &self,
         manifest: &mut FenceableManifest,
@@ -189,7 +186,6 @@ impl DbInner {
     /// - `key_hash`: the hash of the key (used for filter, to avoid recomputing the hash)
     /// ## Returns
     /// - `true` if the key is in the range of the sst.
-    #[async_backtrace::framed]
     async fn sst_might_include_key(
         &self,
         sst: &SsTableHandle,
@@ -213,7 +209,6 @@ impl DbInner {
     /// - `key_hash`: the hash of the key (used for filter, to avoid recomputing the hash)
     /// ## Returns
     /// - `true` if the key is in the range of the sst.
-    #[async_backtrace::framed]
     async fn sr_might_include_key(
         &self,
         sr: &SortedRun,
@@ -236,7 +231,6 @@ impl DbInner {
         return true;
     }
 
-    #[async_backtrace::framed]
     pub async fn write_with_options(
         &self,
         batch: WriteBatch,
@@ -266,7 +260,6 @@ impl DbInner {
     }
 
     #[inline]
-    #[async_backtrace::framed]
     pub(crate) async fn maybe_apply_backpressure(&self) {
         loop {
             let mem_size_bytes = {
@@ -322,7 +315,6 @@ impl DbInner {
         }
     }
 
-    #[async_backtrace::framed]
     async fn flush_wals(&self) -> Result<(), SlateDBError> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.wal_flush_notifier
@@ -332,7 +324,6 @@ impl DbInner {
     }
 
     // use to manually flush memtables
-    #[async_backtrace::framed]
     async fn flush_memtables(&self) -> Result<(), SlateDBError> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.memtable_flush_notifier
@@ -341,7 +332,6 @@ impl DbInner {
         rx.await?
     }
 
-    #[async_backtrace::framed]
     async fn replay_wal(&self) -> Result<(), SlateDBError> {
         async fn load_sst_iters(
             db_inner: &DbInner,
@@ -504,7 +494,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn open<P: Into<Path>>(
         path: P,
         object_store: Arc<dyn ObjectStore>,
@@ -539,7 +528,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn open_with_opts<P: Into<Path>>(
         path: P,
         options: DbOptions,
@@ -584,7 +572,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn open_with_fp_registry<P: Into<Path>>(
         path: P,
         options: DbOptions,
@@ -719,7 +706,6 @@ impl Db {
         })
     }
 
-    #[async_backtrace::framed]
     async fn init_db(
         manifest_store: &Arc<ManifestStore>,
         latest_stored_manifest: Option<StoredManifest>,
@@ -751,7 +737,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn close(&self) -> Result<(), SlateDBError> {
         if let Some(compactor) = {
             let mut maybe_compactor = self.compactor.lock();
@@ -843,7 +828,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn get(&self, key: &[u8]) -> Result<Option<Bytes>, SlateDBError> {
         self.inner.get_with_options(key, DEFAULT_READ_OPTIONS).await
     }
@@ -884,7 +868,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn get_with_options(
         &self,
         key: &[u8],
@@ -917,7 +900,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn put(&self, key: &[u8], value: &[u8]) -> Result<(), SlateDBError> {
         let mut batch = WriteBatch::new();
         batch.put(key, value);
@@ -950,7 +932,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn put_with_options(
         &self,
         key: &[u8],
@@ -986,7 +967,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-
     pub async fn delete(&self, key: &[u8]) -> Result<(), SlateDBError> {
         let mut batch = WriteBatch::new();
         batch.delete(key);
@@ -1017,7 +997,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn delete_with_options(
         &self,
         key: &[u8],
@@ -1059,7 +1038,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn write(&self, batch: WriteBatch) -> Result<(), SlateDBError> {
         self.write_with_options(batch, DEFAULT_WRITE_OPTIONS).await
     }
@@ -1096,7 +1074,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn write_with_options(
         &self,
         batch: WriteBatch,
@@ -1127,7 +1104,6 @@ impl Db {
     ///     Ok(())
     /// }
     /// ```
-    #[async_backtrace::framed]
     pub async fn flush(&self) -> Result<(), SlateDBError> {
         if self.inner.wal_enabled() {
             self.inner.flush_wals().await
@@ -1146,7 +1122,6 @@ mod tests {
     use std::sync::atomic::Ordering;
     use std::time::Duration;
 
-    use async_backtrace::frame;
     use futures::{future::join_all, StreamExt};
     use object_store::memory::InMemory;
     use object_store::ObjectStore;
@@ -1445,25 +1420,25 @@ mod tests {
             // Write two tasks that write to the same keys
             let task1 = {
                 let store = kv_store.clone();
-                tokio::spawn(frame!(async move {
+                tokio::spawn(async move {
                     let mut batch = WriteBatch::new();
                     for key in 1..=NUM_KEYS {
                         batch.put(&key.to_be_bytes(), &key.to_be_bytes());
                     }
                     store.write(batch).await.expect("write batch failed");
-                }))
+                })
             };
 
             let task2 = {
                 let store = kv_store.clone();
-                tokio::spawn(frame!(async move {
+                tokio::spawn(async move {
                     let mut batch = WriteBatch::new();
                     for key in 1..=NUM_KEYS {
                         let value = (key * 2).to_be_bytes();
                         batch.put(&key.to_be_bytes(), &value);
                     }
                     store.write(batch).await.expect("write batch failed");
-                }))
+                })
             };
 
             // Wait for both tasks to complete

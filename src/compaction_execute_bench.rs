@@ -41,7 +41,6 @@ impl CompactionExecuteBench {
         SsTableId::Compacted(Ulid::from((id as u64, id as u64)))
     }
 
-    #[async_backtrace::framed]
     pub async fn run_load(
         &self,
         num_ssts: usize,
@@ -94,7 +93,6 @@ impl CompactionExecuteBench {
         Ok(())
     }
 
-    #[async_backtrace::framed]
     async fn load_sst(
         i: u32,
         table_store: Arc<TableStore>,
@@ -127,7 +125,6 @@ impl CompactionExecuteBench {
         }
     }
 
-    #[async_backtrace::framed]
     async fn do_load_sst(
         i: u32,
         table_store: Arc<TableStore>,
@@ -155,7 +152,6 @@ impl CompactionExecuteBench {
     }
 
     #[allow(clippy::panic)]
-    #[async_backtrace::framed]
     pub async fn run_clear(&self, num_ssts: usize) -> Result<(), SlateDBError> {
         let mut del_tasks = Vec::new();
         for i in 0u32..num_ssts as u32 {
@@ -178,7 +174,6 @@ impl CompactionExecuteBench {
         Ok(())
     }
 
-    #[async_backtrace::framed]
     async fn load_compaction_job(
         manifest: &StoredManifest,
         num_ssts: usize,
@@ -252,7 +247,6 @@ impl CompactionExecuteBench {
         }
     }
 
-    #[async_backtrace::framed]
     pub async fn run_bench(
         &self,
         num_ssts: usize,

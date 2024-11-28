@@ -45,7 +45,6 @@ pub(crate) struct ValueWithAttributes {
 }
 
 impl<'a> KeyValueIterator for MemTableIterator<'a> {
-    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         Ok(self.next_entry_sync())
     }
@@ -82,7 +81,6 @@ impl ImmutableMemtable {
         self.last_wal_id
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn await_flush_to_l0(&self) {
         let mut rx = self.is_flushed_rx.clone();
         while !*rx.borrow_and_update() {
@@ -216,7 +214,6 @@ impl KVTable {
         }
     }
 
-    #[async_backtrace::framed]
     pub(crate) async fn await_durable(&self) {
         let mut rx = self.is_durable_rx.clone();
         while !*rx.borrow_and_update() {

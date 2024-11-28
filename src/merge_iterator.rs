@@ -11,7 +11,6 @@ pub(crate) struct TwoMergeIterator<T1: KeyValueIterator, T2: KeyValueIterator> {
 }
 
 impl<T1: KeyValueIterator, T2: KeyValueIterator> TwoMergeIterator<T1, T2> {
-    #[async_backtrace::framed]
     pub(crate) async fn new(mut iterator1: T1, mut iterator2: T2) -> Result<Self, SlateDBError> {
         let next1 = iterator1.next_entry().await?;
         let next2 = iterator2.next_entry().await?;
@@ -21,7 +20,6 @@ impl<T1: KeyValueIterator, T2: KeyValueIterator> TwoMergeIterator<T1, T2> {
         })
     }
 
-    #[async_backtrace::framed]
     async fn advance1(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         if self.iterator1.1.is_none() {
             return Ok(None);
@@ -32,7 +30,6 @@ impl<T1: KeyValueIterator, T2: KeyValueIterator> TwoMergeIterator<T1, T2> {
         ))
     }
 
-    #[async_backtrace::framed]
     async fn advance2(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         if self.iterator2.1.is_none() {
             return Ok(None);
@@ -45,7 +42,6 @@ impl<T1: KeyValueIterator, T2: KeyValueIterator> TwoMergeIterator<T1, T2> {
 }
 
 impl<T1: KeyValueIterator, T2: KeyValueIterator> KeyValueIterator for TwoMergeIterator<T1, T2> {
-    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         if let Some(next1) = self.iterator1.1.as_ref() {
             if let Some(next2) = self.iterator2.1.as_ref() {
@@ -99,7 +95,6 @@ pub(crate) struct MergeIterator<T: KeyValueIterator> {
 }
 
 impl<T: KeyValueIterator> MergeIterator<T> {
-    #[async_backtrace::framed]
     pub(crate) async fn new(mut iterators: VecDeque<T>) -> Result<Self, SlateDBError> {
         let mut heap = BinaryHeap::new();
         let mut index = 0;
@@ -119,7 +114,6 @@ impl<T: KeyValueIterator> MergeIterator<T> {
         })
     }
 
-    #[async_backtrace::framed]
     async fn advance(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         if let Some(mut iterator_state) = self.current.take() {
             let current_kv = iterator_state.next_kv;
@@ -135,7 +129,6 @@ impl<T: KeyValueIterator> MergeIterator<T> {
 }
 
 impl<T: KeyValueIterator> KeyValueIterator for MergeIterator<T> {
-    #[async_backtrace::framed]
     async fn next_entry(&mut self) -> Result<Option<RowEntry>, SlateDBError> {
         if let Some(kv) = self.advance().await? {
             while let Some(next_entry) = self.current.as_ref() {

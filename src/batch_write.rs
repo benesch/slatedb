@@ -50,7 +50,6 @@ pub(crate) struct WriteBatchRequest {
 
 impl DbInner {
     #[allow(clippy::panic)]
-    #[async_backtrace::framed]
     async fn write_batch(&self, batch: WriteBatch) -> Result<Arc<KVTable>, SlateDBError> {
         let now = self.options.clock.now();
 

@@ -8,7 +8,6 @@ use std::sync::atomic::{AtomicI64, Ordering};
 // this complains because we include these in the bencher feature but they are only
 // used for cfg(test)
 #[allow(dead_code)]
-#[async_backtrace::framed]
 pub(crate) async fn assert_iterator<T: KeyValueIterator>(
     iterator: &mut T,
     entries: &[(Vec<u8>, ValueDeletable, RowAttributes)],
